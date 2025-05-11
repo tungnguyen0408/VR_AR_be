@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận đặt hàng thành công</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            background-color: #4CAF50;
+            color: #ffffff;
+            padding: 15px;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .content p {
+            margin: 0 0 10px;
+        }
+        .order-details {
+            margin-top: 20px;
+        }
+        .product-item {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #dddddd;
+            padding: 10px 0;
+        }
+        .product-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            margin-right: 15px;
+            border-radius: 5px;
+        }
+        .product-details {
+            flex: 1;
+        }
+        .footer {
+            text-align: center;
+            color: #888;
+            font-size: 12px;
+            padding: 15px 0;
+        }
+        .total-price {
+            font-weight: bold;
+            color: #FF5722;
+            font-size: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Xác nhận đặt hàng thành công</h1>
+    </div>
+    <div class="content">
+        <p>Xin chào <strong th:text="${userName}"></strong>,</p>
+        <p>Cảm ơn bạn đã đặt hàng tại <strong>Công ty của chúng tôi</strong>! Dưới đây là thông tin chi tiết đơn hàng của bạn:</p>
+
+        <div class="order-details" th:each="product : ${products}">
+            <div class="product-item">
+                <img th:src="${product.product.image_url}" alt="Ảnh sản phẩm">
+                <div class="product-details">
+                    <p><strong th:text="${product.product.name}">Tên sản phẩm</strong></p>
+                    <p>Giá: <span th:text="${product.product.price}"></span> đ</p>
+                    <p>Kích thước: <span th:text="${product.size}"></span></p>
+                    <p>Số lượng: <span th:text="${product.quantity}"></span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="total-price">
+            Tổng tiền: <span th:text="${totalPrice}"></span> đ
+        </div>
+
+        <p>Nếu bạn có bất kỳ câu hỏi nào về đơn hàng, vui lòng liên hệ với chúng tôi.</p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2024 Công ty của chúng tôi. Mọi quyền được bảo lưu.</p>
+    </div>
+</div>
+</body>
+</html>
