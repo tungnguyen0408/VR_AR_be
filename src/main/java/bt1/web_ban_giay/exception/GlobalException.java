@@ -15,4 +15,33 @@ public class GlobalException {
         res.setMessage(invalidException.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
     }
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<GlobalResponse<Object>> handleIllegalArgument(IllegalArgumentException ex) {
+        GlobalResponse<Object> response = new GlobalResponse<>(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                null
+        );
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<GlobalResponse<Object>> handleNotFound(ResourceNotFoundException ex) {
+        GlobalResponse<Object> response = new GlobalResponse<>(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                null
+        );
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<GlobalResponse<Object>> handleAll(Exception ex) {
+        GlobalResponse<Object> response = new GlobalResponse<>(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Unexpected error: " + ex.getMessage(),
+                null
+        );
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

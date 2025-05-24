@@ -1,6 +1,5 @@
 package bt1.web_ban_giay.mapper;
 
-import bt1.web_ban_giay.dto.request.OrderItemDTO;
 import bt1.web_ban_giay.dto.request.ReqOrderDTO;
 import bt1.web_ban_giay.dto.response.ResOrderDTO;
 import bt1.web_ban_giay.entity.Order;

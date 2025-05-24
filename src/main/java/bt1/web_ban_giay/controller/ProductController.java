@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +30,7 @@ public class ProductController {
         return ResponseEntity.ok(createdProduct);
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<ResPageDTO> getAllProducts(@Filter String filter, Pageable pageable) {
         return ResponseEntity.ok(productService.getAllProducts(filter, pageable));
     }
@@ -40,18 +41,25 @@ public class ProductController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<ProductDTO>> searchProducts(@RequestParam String keyword) {
-        return ResponseEntity.ok(productService.searchProducts(keyword));
+    public ResponseEntity<ResPageDTO> searchProducts(
+            @RequestParam String keyword,
+            @PageableDefault(page = 0, size = 10) Pageable pageable) {
+        ResPageDTO response = productService.searchProducts(keyword, pageable);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<ProductDTO>> getProductsByCategory(@PathVariable Long categoryId) {
-        return ResponseEntity.ok(productService.getProductsByCategory(categoryId));
+    public ResponseEntity<ResPageDTO> getProductsByCategory(
+            @PathVariable Long categoryId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(productService.getProductsByCategory(categoryId, pageable));
     }
 
     @GetMapping("/newest")
-    public ResponseEntity<List<ProductDTO>> getNewestProducts() {
-        return ResponseEntity.ok(productService.getNewestProducts());
+    public ResponseEntity<ResPageDTO> getNewestProducts( @PageableDefault(page = 0, size = 10) Pageable pageable) {
+        return ResponseEntity.ok(productService.getNewestProducts(pageable));
     }
 
     @GetMapping("/gender/{gender}")
@@ -65,40 +73,53 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-
     @GetMapping("/price-range")
-    public ResponseEntity<List<ProductDTO>> getProductsByPriceRange(
+    public ResponseEntity<ResPageDTO> getProductsByPriceRange(
             @RequestParam BigDecimal minPrice,
-            @RequestParam BigDecimal maxPrice) {
-        return ResponseEntity.ok(productService.getProductsByPriceRange(minPrice, maxPrice));
+            @RequestParam BigDecimal maxPrice,
+            @PageableDefault(page = 0, size = 10) Pageable pageable) {
+        ResPageDTO response = productService.getProductsByPriceRange(minPrice, maxPrice, pageable);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/category/{categoryId}/gender/{gender}")
-    public ResponseEntity<List<ProductDTO>> getProductsByCategoryAndGender(
+    public ResponseEntity<ResPageDTO> getProductsByCategoryAndGender(
             @PathVariable Long categoryId,
-            @PathVariable String gender) {
-        return ResponseEntity.ok(productService.getProductsByCategoryAndGender(categoryId, gender));
+            @PathVariable String gender,
+            @PageableDefault(page = 0, size = 10) Pageable pageable) {
+        ResPageDTO response = productService.getProductsByCategoryAndGender(categoryId, gender, pageable);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/category/{categoryId}/price-range")
-    public ResponseEntity<List<ProductDTO>> getProductsByCategoryAndPriceRange(
+    public ResponseEntity<ResPageDTO> getProductsByCategoryAndPriceRange(
             @PathVariable Long categoryId,
             @RequestParam BigDecimal minPrice,
-            @RequestParam BigDecimal maxPrice) {
-        return ResponseEntity.ok(productService.getProductsByCategoryAndPriceRange(categoryId, minPrice, maxPrice));
+            @RequestParam BigDecimal maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity
+                .ok(productService.getProductsByCategoryAndPriceRange(categoryId, minPrice, maxPrice, pageable));
     }
 
     @GetMapping("/gender/{gender}/price-range")
-    public ResponseEntity<List<ProductDTO>> getProductsByGenderAndPriceRange(
+    public ResponseEntity<ResPageDTO> getProductsByGenderAndPriceRange(
             @PathVariable String gender,
             @RequestParam BigDecimal minPrice,
-            @RequestParam BigDecimal maxPrice) {
-        return ResponseEntity.ok(productService.getProductsByGenderAndPriceRange(gender, minPrice, maxPrice));
+            @RequestParam BigDecimal maxPrice,
+            @PageableDefault(page = 0, size = 10) Pageable pageable) {
+        ResPageDTO response = productService.getProductsByGenderAndPriceRange(gender, minPrice, maxPrice, pageable);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<ProductDTO>> getProductsByStatus(@PathVariable Product.ProductStatus status) {
-        return ResponseEntity.ok(productService.getProductsByStatus(status));
+    public ResponseEntity<ResPageDTO> getProductsByStatus(
+            @PathVariable Product.ProductStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(productService.getProductsByStatus(status, pageable));
     }
 
     @PutMapping("/{id}")
@@ -120,4 +141,22 @@ public class ProductController {
             @RequestParam Product.ProductStatus status) {
         return ResponseEntity.ok(productService.updateProductStatus(id, status));
     }
+
+    @GetMapping("/bestsellers")
+    public ResPageDTO getBestsellerProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size
+    ) {
+        return productService.getBestsellerProducts(page, size);
+    }
+
+    @GetMapping("/discounted")
+    public ResponseEntity<ResPageDTO> getDiscountedProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size
+    ) {
+        return ResponseEntity.ok(productService.getDiscountedProducts(page, size));
+    }
+
+
 }

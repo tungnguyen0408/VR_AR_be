@@ -1,6 +1,5 @@
 package bt1.web_ban_giay.dto.response;
 
-import bt1.web_ban_giay.dto.ProductAttributeDTO;
 import bt1.web_ban_giay.entity.Product;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
@@ -9,10 +8,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
+import bt1.web_ban_giay.dto.response.ProductVariantDTO;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -65,6 +65,5 @@ public class ProductDTO {
     private Product.Gender gender;
 
     private List<ProductVariantDTO> variants;
-    private List<ProductAttributeDTO> attributes;
-}
 
+}

@@ -78,9 +78,6 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductVariant> variants = new ArrayList<>();
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    private List<ProductAttribute> attributes = new ArrayList<>();
-
     @ManyToMany
     @JoinTable(name = "product_tag_relations", joinColumns = @JoinColumn(name = "product_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private List<ProductTag> tags = new ArrayList<>();
@@ -117,10 +114,14 @@ public class Product {
 
         public static Gender fromString(String gender) {
             switch (gender.toUpperCase()) {
-                case "MALE": return MALE;
-                case "FEMALE": return FEMALE;
-                case "UNISEX": return UNISEX;
-                default: throw new IllegalArgumentException("Invalid gender: " + gender);
+                case "MALE":
+                    return MALE;
+                case "FEMALE":
+                    return FEMALE;
+                case "UNISEX":
+                    return UNISEX;
+                default:
+                    throw new IllegalArgumentException("Invalid gender: " + gender);
             }
         }
     }

@@ -1,6 +1,5 @@
 package bt1.web_ban_giay.dto.request;
 
-import bt1.web_ban_giay.dto.ProductAttributeDTO;
 import bt1.web_ban_giay.dto.response.ProductVariantDTO;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -61,10 +60,7 @@ public class ReqProductDTO {
 
     private String metaKeywords;
 
-    private List<String> imageUrls;  // Dùng để lưu URL hình ảnh sản phẩm
+    private List<String> imageUrls; // Dùng để lưu URL hình ảnh sản phẩm
 
-    private List<ProductVariantDTO> variants;  // Dùng để lưu danh sách biến thể sản phẩm
-
-    private List<ProductAttributeDTO> attributes;  // Dùng để lưu các thuộc tính sản phẩm
+    private List<ProductVariantDTO> variants; // Dùng để lưu danh sách biến thể sản phẩm
 }
-

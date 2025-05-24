@@ -2,17 +2,22 @@ package bt1.web_ban_giay.mapper;
 
 import bt1.web_ban_giay.dto.response.ProductVariantDTO;
 import bt1.web_ban_giay.entity.ProductVariant;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 
-@Mapper(componentModel = "spring")
+import java.util.List;
+
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ProductVariantMapper {
+
     @Mapping(target = "productId", source = "product.id")
-    ProductVariantDTO toDTO(ProductVariant productVariant);
+    ProductVariantDTO toDTO(ProductVariant variant);
+
+    List<ProductVariantDTO> toDTOList(List<ProductVariant> variants);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "product", ignore = true)
-    ProductVariant toEntity(ProductVariantDTO productVariantDTO);
+    @Mapping(target = "sku", ignore = true)
+    ProductVariant toEntity(ProductVariantDTO dto);
 }

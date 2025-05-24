@@ -17,13 +17,11 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 @RestController
+@RequestMapping("/api/auth")
 public class AuthController {
     @Autowired
     AuthService authService;
@@ -36,7 +34,7 @@ public class AuthController {
     @Value("${bt1.cookie-expiration}")
     private long expriration_cookie;
 
-    @PostMapping("/auth/login")
+    @PostMapping("/login")
     public ResponseEntity<ResLoginDTO> login(@RequestBody LoginUserDTO loginUserDTO) {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 loginUserDTO.getUsername(), loginUserDTO.getPassword());
