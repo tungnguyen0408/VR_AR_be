@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -94,4 +95,73 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
         // Lấy sản phẩm theo giới tính, khoảng giá và trạng thái (có phân trang)
         Page<Product> findByGenderAndPriceBetweenAndStatus(String gender, BigDecimal minPrice, BigDecimal maxPrice,
                         Product.ProductStatus status, Pageable pageable);
+
+        @Query("SELECT DISTINCT p FROM Product p " +
+                        "LEFT JOIN p.variants v " +
+                        "WHERE (:brands IS NULL OR p.brand IN :brands) " +
+                        "AND (:minPrice IS NULL OR p.price >= :minPrice) " +
+                        "AND (:maxPrice IS NULL OR p.price <= :maxPrice) " +
+                        "AND (:colors IS NULL OR v.color IN :colors) " +
+                        "AND (:sizes IS NULL OR v.size IN :sizes) " +
+                        "AND (:gender IS NULL OR p.gender = :gender)")
+        Page<Product> findProductsWithFilters(
+                        @Param("brands") List<String> brands,
+                        @Param("minPrice") BigDecimal minPrice,
+                        @Param("maxPrice") BigDecimal maxPrice,
+                        @Param("colors") List<String> colors,
+                        @Param("sizes") List<Integer> sizes,
+                        @Param("gender") Product.Gender gender,
+                        Pageable pageable);
+
+
+
+        @Query("SELECT DISTINCT p FROM Product p " +
+                "LEFT JOIN p.variants v " +
+                "WHERE " +
+                "(:brands IS NULL OR p.brand IN :brands) AND " +
+                "(:gender IS NULL OR p.gender = :gender) AND " +
+                "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
+                "(:maxPrice IS NULL OR p.price <= :maxPrice) AND " +
+                "(:isBestseller IS NULL OR p.isBestseller = :isBestseller) AND " +
+                "(:isNew IS NULL OR p.isNew = :isNew) AND " +
+                "(:isFeatured IS NULL OR p.isFeatured = :isFeatured) AND " +
+                "(:sizes IS NULL OR v.size IN :sizes) AND " +
+                "(:colors IS NULL OR v.color IN :colors) AND " +
+                "p.status = 'ACTIVE'")
+        Page<Product> filterProducts(
+                @Param("brands") List<String> brands,
+                @Param("gender") Product.Gender gender,
+                @Param("minPrice") BigDecimal minPrice,
+                @Param("maxPrice") BigDecimal maxPrice,
+                @Param("isBestseller") Boolean isBestseller,
+                @Param("isNew") Boolean isNew,
+                @Param("isFeatured") Boolean isFeatured,
+                @Param("sizes") List<String> sizes,
+                @Param("colors") List<String> colors,
+                Pageable pageable
+        );
+        @Query("SELECT DISTINCT p.brand FROM Product p " +
+                "WHERE p.status = 'ACTIVE' " +
+                "AND (:gender IS NULL OR p.gender = :gender) " +
+                "AND p.brand IS NOT NULL " +
+                "ORDER BY p.brand")
+        List<String> findAvailableBrands(@Param("gender") Product.Gender gender);
+
+        @Query("SELECT DISTINCT v.size FROM Product p " +
+                "JOIN p.variants v " +
+                "WHERE p.status = 'ACTIVE' " +
+                "AND (:gender IS NULL OR p.gender = :gender) " +
+                "AND v.size IS NOT NULL " +
+                "AND v.stockQuantity > 0 " +
+                "ORDER BY CAST(v.size AS integer)")
+        List<String> findAvailableSizes(@Param("gender") Product.Gender gender);
+
+        @Query("SELECT DISTINCT v.color FROM Product p " +
+                "JOIN p.variants v " +
+                "WHERE p.status = 'ACTIVE' " +
+                "AND (:gender IS NULL OR p.gender = :gender) " +
+                "AND v.color IS NOT NULL " +
+                "AND v.stockQuantity > 0 " +
+                "ORDER BY v.color")
+        List<String> findAvailableColors(@Param("gender") Product.Gender gender);
 }

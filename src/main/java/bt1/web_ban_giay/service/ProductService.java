@@ -11,6 +11,7 @@ import bt1.web_ban_giay.exception.InvalidException;
 import bt1.web_ban_giay.mapper.ProductMapper;
 import bt1.web_ban_giay.repository.*;
 import com.turkraft.springfilter.converter.FilterSpecificationConverter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,12 +20,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.criteria.Join;
 
 import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.util.*;
 import java.util.stream.Collectors;
-
+@Slf4j
 @Service
 public class ProductService {
     @Autowired
@@ -335,79 +337,60 @@ public class ProductService {
         return productMapper.toDTO(updatedProduct);
     }
 
-    public ResPageDTO filterProducts(ProductFilterDTO filterDTO, Pageable pageable) {
-        StringBuilder filterBuilder = new StringBuilder();
-
-        // Build filter string for turkraft.springfilter
-        if (filterDTO.getBrands() != null && !filterDTO.getBrands().isEmpty()) {
-            if (filterBuilder.length() > 0)
-                filterBuilder.append(";");
-            filterBuilder.append("brand=in=(");
-            filterBuilder.append(String.join(",", filterDTO.getBrands()));
-            filterBuilder.append(")");
-        }
-
-        if (filterDTO.getMinPrice() != null) {
-            if (filterBuilder.length() > 0)
-                filterBuilder.append(";");
-            filterBuilder.append("price>==").append(filterDTO.getMinPrice());
-        }
-
-        if (filterDTO.getMaxPrice() != null) {
-            if (filterBuilder.length() > 0)
-                filterBuilder.append(";");
-            filterBuilder.append("price<==").append(filterDTO.getMaxPrice());
-        }
-
-        if (filterDTO.getColors() != null && !filterDTO.getColors().isEmpty()) {
-            if (filterBuilder.length() > 0)
-                filterBuilder.append(";");
-            filterBuilder.append("variants.color=in=(");
-            filterBuilder.append(String.join(",", filterDTO.getColors()));
-            filterBuilder.append(")");
-        }
-
-        if (filterDTO.getSizes() != null && !filterDTO.getSizes().isEmpty()) {
-            if (filterBuilder.length() > 0)
-                filterBuilder.append(";");
-            filterBuilder.append("variants.size=in=(");
-            filterBuilder.append(String.join(",", filterDTO.getSizes().stream()
-                    .map(String::valueOf)
-                    .collect(Collectors.toList())));
-            filterBuilder.append(")");
-        }
-
-        if (filterDTO.getGender() != null && !filterDTO.getGender().isEmpty()) {
-            if (filterBuilder.length() > 0)
-                filterBuilder.append(";");
-            filterBuilder.append("gender==").append(filterDTO.getGender());
-        }
-
-        // Apply sorting if specified
-        if (filterDTO.getSortBy() != null && !filterDTO.getSortBy().isEmpty()) {
-            String sortDirection = filterDTO.getSortDirection() != null ? filterDTO.getSortDirection().toUpperCase()
-                    : "ASC";
-            Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), filterDTO.getSortBy());
-            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
-        }
-
-        String filterString = filterBuilder.toString();
-        Specification<Product> spec = filterString.isEmpty() ? null
-                : filterSpecificationConverter.convert(filterString);
-
-        Page<Product> productPage = (spec != null) ? productRepository.findAll(spec, pageable)
-                : productRepository.findAll(pageable);
-
-        ResPageDTO res = new ResPageDTO();
-        MetaDTO meta = new MetaDTO();
-        meta.setPage(pageable.getPageNumber() + 1);
-        meta.setPageSize(pageable.getPageSize());
-        meta.setPages(productPage.getTotalPages());
-        meta.setTotal(productPage.getTotalElements());
-        res.setMeta(meta);
-        res.setResult(productMapper.toDTOList(productPage.getContent()));
-        return res;
+    // Thêm method để lấy danh sách brand có sẵn
+    public List<String> getAvailableBrands(Product.Gender gender) {
+        return productRepository.findAvailableBrands(gender);
     }
+
+    // Các method khác giữ nguyên
+    public List<String> getAvailableSizes(Product.Gender gender) {
+        return productRepository.findAvailableSizes(gender);
+    }
+
+    public List<String> getAvailableColors(Product.Gender gender) {
+        return productRepository.findAvailableColors(gender);
+    }
+
+    private Pageable createSortedPageable(Pageable pageable, String sortBy, String sortDirection) {
+        if (sortBy == null || sortDirection == null) {
+            return pageable;
+        }
+
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
+        String field = sortBy.equals("price") ? "price" : "name";
+
+        return PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(direction, field)
+        );
+    }
+
+
+    public ResPageDTO filterProducts(ProductFilterDTO filterDTO, Pageable pageable) {
+        try {
+            Pageable sortedPageable = createSortedPageable(pageable, filterDTO.getSortBy(), filterDTO.getSortDirection());
+
+            Page<Product> productPage = productRepository.filterProducts(
+                    filterDTO.getBrands(), // Thay đổi từ brand sang brands
+                    filterDTO.getGender(),
+                    filterDTO.getMinPrice(),
+                    filterDTO.getMaxPrice(),
+                    filterDTO.getIsBestseller(),
+                    filterDTO.getIsNew(),
+                    filterDTO.getIsFeatured(),
+                    filterDTO.getSizes(),
+                    filterDTO.getColors(),
+                    sortedPageable
+            );
+
+            return buildResPageDTO(productPage);
+        } catch (Exception e) {
+            log.error("Error filtering products: ", e);
+            throw new RuntimeException("Error filtering products", e);
+        }
+    }
+
 
     public ResPageDTO getBestsellerProducts(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -421,8 +404,6 @@ public class ProductService {
 
         return buildResPageDTO(productPage);
     }
-
-
 
     private ResPageDTO buildResPageDTO(Page<Product> productPage) {
         ResPageDTO res = new ResPageDTO();
