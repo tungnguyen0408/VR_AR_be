@@ -71,6 +71,22 @@ public class CartService {
         ProductVariant variant = productVariantRepository.findById(variantId)
                 .orElseThrow(() -> new InvalidException("Không tìm thấy biến thể sản phẩm"));
 
+        // Kiểm tra số lượng tồn kho
+        if (variant.getStockQuantity() <= 0) {
+            throw new InvalidException("Sản phẩm đã hết hàng");
+        }
+
+        // Kiểm tra số lượng yêu cầu có vượt quá tồn kho
+        if (quantity > variant.getStockQuantity()) {
+            throw new InvalidException("Số lượng yêu cầu vượt quá số lượng tồn kho");
+        }
+
+        // Giới hạn số lượng tối đa có thể thêm vào giỏ hàng
+        final int MAX_QUANTITY = 10;
+        if (quantity > MAX_QUANTITY) {
+            throw new InvalidException("Số lượng tối đa có thể thêm vào giỏ hàng là " + MAX_QUANTITY);
+        }
+
         // Get or create cart
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseGet(() -> {
@@ -81,11 +97,19 @@ public class CartService {
 
         // Check if item already exists in cart
         CartItem existingItem = cartItemRepository.findByCartIdAndProductIdAndProductVariantId(
-                        cart.getId(), productId, variantId)
+                cart.getId(), productId, variantId)
                 .orElse(null);
 
         if (existingItem != null) {
-            existingItem.setQuantity(existingItem.getQuantity() + quantity);
+            // Kiểm tra tổng số lượng sau khi cập nhật
+            int newQuantity = existingItem.getQuantity() + quantity;
+            if (newQuantity > variant.getStockQuantity()) {
+                throw new InvalidException("Tổng số lượng vượt quá số lượng tồn kho");
+            }
+            if (newQuantity > MAX_QUANTITY) {
+                throw new InvalidException("Tổng số lượng vượt quá giới hạn cho phép (" + MAX_QUANTITY + ")");
+            }
+            existingItem.setQuantity(newQuantity);
             cartItemRepository.save(existingItem);
         } else {
             CartItem newItem = new CartItem();
@@ -98,7 +122,6 @@ public class CartService {
 
         return toDTO(cart);
     }
-
 
     @Transactional
     public void removeFromCart(Long cartItemId) {
@@ -186,7 +209,6 @@ public class CartService {
         return dto;
     }
 
-
     private ProductVariantDTO toProductVariantDTO(ProductVariant variant) {
         Long productId = (variant.getProduct() != null) ? variant.getProduct().getId() : null;
 
@@ -200,6 +222,5 @@ public class CartService {
                 variant.getCreatedAt(),
                 variant.getUpdatedAt());
     }
-
 
 }

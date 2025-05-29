@@ -96,4 +96,8 @@ public class Order {
     public enum PaymentStatus {
         PENDING, PAID, FAILED
     }
+
+    public enum ShippingStatus {
+        PENDING, PROCESSING, SHIPPED, DELIVERED, RETURNED
+    }
 }

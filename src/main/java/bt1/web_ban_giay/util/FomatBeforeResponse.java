@@ -27,7 +27,7 @@ public class FomatBeforeResponse implements ResponseBodyAdvice {
             return body;
         }
         else {
-            res.setMessage("goi api thanh cong");
+            res.setMessage("Đã hoàn tất");
             res.setData(body);
         }
         return res;

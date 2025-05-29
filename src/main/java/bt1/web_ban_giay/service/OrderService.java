@@ -2,6 +2,7 @@ package bt1.web_ban_giay.service;
 
 import bt1.web_ban_giay.dto.request.OrderItemDTO;
 import bt1.web_ban_giay.dto.request.ReqOrderDTO;
+import bt1.web_ban_giay.dto.request.PaymentRequestDTO;
 import bt1.web_ban_giay.dto.response.ResOrderDTO;
 import bt1.web_ban_giay.entity.*;
 import bt1.web_ban_giay.exception.InvalidException;
@@ -109,6 +110,10 @@ public class OrderService {
     }
 
     public Page<ResOrderDTO> getOrders(String filter, Pageable pageable) {
+        if (filter == null || filter.trim().isEmpty()) {
+            return orderRepository.findAll(pageable)
+                    .map(orderMapper::toDTO);
+        }
         Specification<Order> spec = filterSpecificationConverter.convert(filter);
         return orderRepository.findAll(spec, pageable)
                 .map(orderMapper::toDTO);
@@ -271,5 +276,97 @@ public class OrderService {
             case CANCELLED:
                 throw new InvalidException("Không thể thay đổi trạng thái của đơn hàng đã hoàn thành hoặc đã hủy");
         }
+    }
+
+    @Transactional
+    public ResOrderDTO processPayment(Long orderId, PaymentRequestDTO paymentRequest) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new InvalidException("Không tìm thấy đơn hàng"));
+
+        if (order.getPaymentStatus() == Order.PaymentStatus.PAID) {
+            throw new InvalidException("Đơn hàng đã được thanh toán");
+        }
+
+        // Xử lý thanh toán (giả lập)
+        try {
+            // TODO: Tích hợp với cổng thanh toán thực tế
+            order.setPaymentStatus(Order.PaymentStatus.PAID);
+            order.setStatus(Order.OrderStatus.PROCESSING);
+
+            // Tạo giao dịch thanh toán
+            PaymentTransaction transaction = new PaymentTransaction();
+            transaction.setOrder(order);
+            transaction.setAmount(order.getTotalAmount());
+            transaction.setPaymentMethod(paymentRequest.getPaymentMethod());
+            transaction.setTransactionId(UUID.randomUUID().toString());
+            transaction.setStatus(PaymentTransaction.Status.SUCCESS);
+
+            order.getTransactions().add(transaction);
+            Order updatedOrder = orderRepository.save(order);
+
+            return orderMapper.toDTO(updatedOrder);
+        } catch (Exception e) {
+            throw new InvalidException("Thanh toán thất bại: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public ResOrderDTO updateShippingStatus(Long orderId, String trackingNumber, Order.ShippingStatus status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new InvalidException("Không tìm thấy đơn hàng"));
+
+        if (order.getStatus() == Order.OrderStatus.CANCELLED) {
+            throw new InvalidException("Không thể cập nhật trạng thái vận chuyển cho đơn hàng đã hủy");
+        }
+
+        order.setTrackingNumber(trackingNumber);
+
+        // Cập nhật trạng thái đơn hàng dựa trên trạng thái vận chuyển
+        switch (status) {
+            case SHIPPED:
+                order.setStatus(Order.OrderStatus.SHIPPED);
+                break;
+            case DELIVERED:
+                order.setStatus(Order.OrderStatus.DELIVERED);
+                break;
+            case RETURNED:
+                order.setStatus(Order.OrderStatus.CANCELLED);
+                break;
+        }
+
+        Order updatedOrder = orderRepository.save(order);
+        return orderMapper.toDTO(updatedOrder);
+    }
+
+    @Transactional
+    public ResOrderDTO applyCoupon(Long orderId, String couponCode) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new InvalidException("Không tìm thấy đơn hàng"));
+
+        if (order.getStatus() != Order.OrderStatus.PENDING) {
+            throw new InvalidException("Chỉ có thể áp dụng mã giảm giá cho đơn hàng chưa xử lý");
+        }
+
+        // TODO: Tích hợp với service xử lý mã giảm giá
+        // Giả lập xử lý mã giảm giá
+        BigDecimal discountAmount = new BigDecimal("100000"); // Giảm 100k
+        order.setCouponCode(couponCode);
+        order.setDiscountAmount(discountAmount);
+        order.setTotalAmount(order.getTotalAmount().subtract(discountAmount));
+
+        Order updatedOrder = orderRepository.save(order);
+        return orderMapper.toDTO(updatedOrder);
+    }
+
+    public BigDecimal calculateShippingFee(Long shippingMethodId, String address) {
+        ShippingMethod shippingMethod = shippingMethodRepository.findById(shippingMethodId)
+                .orElseThrow(() -> new InvalidException("Không tìm thấy phương thức vận chuyển"));
+
+        // TODO: Tích hợp với service tính phí vận chuyển thực tế
+        // Giả lập tính phí vận chuyển
+        BigDecimal baseFee = shippingMethod.getBaseFee();
+        // Có thể thêm logic tính phí dựa trên địa chỉ, khoảng cách, v.v.
+
+        return baseFee;
     }
 }

@@ -19,7 +19,6 @@ public class ReqOrderDTO {
     @NotBlank(message = "Customer phone is required")
     private String customerPhone;
 
-    @NotNull(message = "Total amount is required")
     private BigDecimal totalAmount;
 
     @NotBlank(message = "Shipping address is required")

@@ -17,42 +17,38 @@ public class PaymentTransaction {
     @JoinColumn(name = "order_id")
     private Order order;
 
-    @Column(name = "transaction_id", unique = true)
     private String transactionId;
 
     @Column(name = "payment_method")
     private String paymentMethod;
 
-    @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
-    private TransactionStatus status = TransactionStatus.PENDING;
-
-    @Column(name = "payment_details", columnDefinition = "TEXT")
-    private String paymentDetails;
-
-    @Column(name = "error_message")
-    private String errorMessage;
+    @Column(name = "status", length = 20)
+    private Status status;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+    public enum Status {
+        PENDING("PENDING"),
+        SUCCESS("SUCCESS"),
+        FAILED("FAILED");
 
-    public enum TransactionStatus {
-        PENDING, COMPLETED, FAILED, REFUNDED
+        private final String value;
+
+        Status(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
     }
 }

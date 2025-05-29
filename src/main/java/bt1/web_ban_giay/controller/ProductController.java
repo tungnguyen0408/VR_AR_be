@@ -58,7 +58,7 @@ public class ProductController {
     }
 
     @GetMapping("/newest")
-    public ResponseEntity<ResPageDTO> getNewestProducts( @PageableDefault(page = 0, size = 10) Pageable pageable) {
+    public ResponseEntity<ResPageDTO> getNewestProducts( @PageableDefault(page = 0, size = 9) Pageable pageable) {
         return ResponseEntity.ok(productService.getNewestProducts(pageable));
     }
 

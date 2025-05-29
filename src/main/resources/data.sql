@@ -1,3 +1,7 @@
+
+ALTER TABLE payment_transactions MODIFY COLUMN status VARCHAR(20);
+
+
 -- Insert Categories
 INSERT INTO categories (id, name, slug, description, parent_id, created_at, updated_at) VALUES
 (1, 'Giày thể thao', 'giay-the-thao', 'Các loại giày thể thao chính hãng', NULL, NOW(), NOW()),
@@ -413,12 +417,11 @@ INSERT INTO promotion_product (promotion_id, product_id, created_at, updated_at)
 (4, 20, NOW(), NOW());
 
 -- Insert Shipping Methods (5 shipping methods)
-INSERT INTO shipping_method (name, description, price, status, created_at, updated_at) VALUES
-('Giao hàng tiêu chuẩn', 'Giao hàng trong 3-5 ngày', 30000, 'ACTIVE', NOW(), NOW()),
-('Giao hàng nhanh', 'Giao hàng trong 1-2 ngày', 50000, 'ACTIVE', NOW(), NOW()),
-('Giao hàng siêu tốc', 'Giao hàng trong 24h', 100000, 'ACTIVE', NOW(), NOW()),
-('Giao hàng miễn phí', 'Giao hàng miễn phí cho đơn từ 1 triệu', 0, 'ACTIVE', NOW(), NOW()),
-('Giao hàng quốc tế', 'Giao hàng quốc tế', 200000, 'ACTIVE', NOW(), NOW());
+INSERT INTO shipping_methods (name, description, base_fee, estimated_days, is_active, created_at, updated_at)
+VALUES
+('Giao hàng nhanh', 'Giao hàng trong vòng 24-48 giờ', 30000, 2, true, NOW(), NOW()),
+('Giao hàng tiêu chuẩn', 'Giao hàng trong vòng 3-5 ngày', 20000, 4, true, NOW(), NOW()),
+('Giao hàng tiết kiệm', 'Giao hàng trong vòng 5-7 ngày', 15000, 7, true, NOW(), NOW());
 
 -- Insert Payment Methods (5 payment methods)
 INSERT INTO payment_method (name, description, status, created_at, updated_at) VALUES
