@@ -125,6 +125,7 @@ public class CategoryServiceImpl implements CategoryService {
         if (category.getParent() != null) {
             dto.setParentId(category.getParent().getId());
         }
+        dto.setProductCount(categoryRepository.countProductsByCategoryId(category.getId()));
         return dto;
     }
 }

@@ -1,8 +1,10 @@
 package bt1.web_ban_giay.service.impl;
 
 import bt1.web_ban_giay.dto.UserDTO;
+import bt1.web_ban_giay.dto.UserProfileDTO;
 import bt1.web_ban_giay.entity.User;
 import bt1.web_ban_giay.exception.ResourceNotFoundException;
+import bt1.web_ban_giay.repository.OrderRepository;
 import bt1.web_ban_giay.repository.UserRepository;
 import bt1.web_ban_giay.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Override
     public UserDTO createUser(UserDTO userDTO) {
@@ -139,6 +144,30 @@ public class UserServiceImpl implements UserService {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid role: " + role);
         }
+    }
+
+    @Override
+    public List<UserProfileDTO> getAllUserProfiles() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+            .map(user -> {
+                UserProfileDTO profileDTO = new UserProfileDTO();
+                profileDTO.setId(user.getId());
+                profileDTO.setUsername(user.getUsername());
+                profileDTO.setFullName(user.getFullName());
+                profileDTO.setPhone(user.getPhone());
+                profileDTO.setEmail(user.getEmail());
+                profileDTO.setRole(user.getRole().name());
+                
+                Long totalOrders = orderRepository.countByUserId(user.getId());
+                Double totalSpent = orderRepository.sumTotalAmountByUserId(user.getId());
+                
+                profileDTO.setTotalOrders(totalOrders);
+                profileDTO.setTotalSpent(totalSpent != null ? totalSpent : 0.0);
+                
+                return profileDTO;
+            })
+            .collect(Collectors.toList());
     }
 
     private UserDTO convertToDTO(User user) {

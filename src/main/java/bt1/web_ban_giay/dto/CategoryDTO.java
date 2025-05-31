@@ -9,4 +9,5 @@ public class CategoryDTO {
     private String slug;
     private String description;
     private Long parentId;
+    private Long productCount;
 }

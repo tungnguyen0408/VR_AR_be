@@ -76,4 +76,9 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
     List<Order> findByUserIdAndPaymentStatus(Long userId, Order.PaymentStatus status);
 
     Page<Order> findByUserIdAndPaymentStatus(Long userId, Order.PaymentStatus status, Pageable pageable);
+
+    Long countByUserId(Long userId);
+    
+    @Query("SELECT SUM(o.totalAmount) FROM Order o WHERE o.user.id = :userId")
+    Double sumTotalAmountByUserId(Long userId);
 }

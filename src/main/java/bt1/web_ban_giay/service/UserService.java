@@ -1,6 +1,7 @@
 package bt1.web_ban_giay.service;
 
 import bt1.web_ban_giay.dto.UserDTO;
+import bt1.web_ban_giay.dto.UserProfileDTO;
 import java.util.List;
 
 public interface UserService {
@@ -23,4 +24,6 @@ public interface UserService {
     void changePassword(Long id, String oldPassword, String newPassword);
 
     void updateUserRole(Long id, String role);
+
+    List<UserProfileDTO> getAllUserProfiles();
 }
